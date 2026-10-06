@@ -176,16 +176,80 @@ Layout zones (portrait phone):
 - RTL support (Arabic): layout mirrors; waveform and press hints flip.
 - Reduced motion: respect system setting — static waveform fallback.
 
-## 9. Platform Notes
+## 9. Localization & RTL (en / zh-Hans / ar)
+
+VoxSign ships **three languages**: English (default), Simplified Chinese, and
+Arabic. **Arabic is a strategic language** — the GCC region is a primary market
+and Arabic must feel native, not translated.
+
+### 9.1 Language policy
+- Languages: `en` (default) · `zh-Hans` · `ar`. App language follows the system
+  setting by default, with an in-app override in Settings.
+- The brand name **VoxSign is never translated**; product terms follow a frozen
+  glossary (see 9.6).
+- Harness templates, iOS UI strings, Android strings, and the ASR language
+  layer must all resolve the same three languages.
+
+### 9.2 Arabic (ar) — first-class support
+- **Full RTL:** every screen mirrors — top bar order, drawer side, message
+  alignment, hold-to-talk slide-up-cancel direction, waveform animation
+  direction, progress direction, chevrons, and time/date layout.
+- **Type:** use the platform Arabic face (SF Pro Arabic / Noto Naskh Arabic /
+  Roboto Arabic). Line height +20% for Arabic script; text must be elastic —
+  Arabic strings commonly run ~30% longer than English.
+- **Numerals:** Western digits by default (common in GCC products); an
+  Arabic-Indic digit option may be enabled per user locale. Never mix both in
+  one screen.
+- **Dates & times:** localize format per locale; support Hijri calendar display
+  as an opt-in.
+- **Voice:** Arabic ASR is a first-class target — MSA plus Gulf-dialect
+  recognition, with the same hold-to-talk flow. ASR language follows the
+  session language, not the device locale.
+- **Touch & accessibility:** all RTL affordances stay ≥ 44 pt and announce in
+  Arabic via TalkBack/VoiceOver.
+
+### 9.3 RTL mirroring rules
+When locale is `ar`, mirror the following (no exceptions):
+- Top bar: drawer entry on the right, new-session on the left.
+- Drawer slides from the right; folder chevrons point left.
+- Message bubbles: user messages right-aligned, assistant left-aligned.
+- Hold-to-talk: "slide up to cancel" mirrors to slide-down (gesture text is
+  localized); waveform fills from the leading edge.
+- Loading/progress bars and spinners keep physical direction but flip
+  horizontal progress.
+
+### 9.4 String & layout rules
+- All strings come from a language resource layer — no hard-coded UI text.
+- Test each screen at +30% text length (Arabic overflow is a layout bug).
+- Numbers, durations ("1s"), and waveform labels use locale-aware figures.
+
+### 9.5 ASR & Harness
+- Harness i18n adds `ar` alongside `en`/`zh`: language detection must recognize
+  Arabic script (U+0600–U+06FF) and pin `ar` when Options.Lang = "ar".
+- ASR layer: Arabic models/dictionaries are a supported profile; the hold-to-talk
+  protocol is language-agnostic.
+
+### 9.6 Glossary (frozen, trilingual)
+| EN | zh-Hans | ar |
+|---|---|---|
+| Hold to talk | 按住说话 | اضغط وتحدث |
+| On device / Cloud | 本机 / 云端 | على الجهاز / السحابة |
+| New session | 新会话 | جلسة جديدة |
+| Roles / Domains | 角色 / 域 | الأدوار / النطاقات |
+| Internalize | 内化 | أرشفة |
+| Machine offline | 机器离线 | الجهاز غير متصل |
+
+## 10. Platform Notes
 
 - **iOS:** follow HIG; SwiftUI; haptic on press (medium), on send (light);
-  maintain Chinese (Simplified) localization alongside English.
+  ship English + Simplified Chinese + Arabic with full RTL.
 - **Android:** follow Material guidance where this spec is silent; Compose;
-  TalkBack; keep feature parity with iOS.
+  TalkBack; ship the same three languages and RTL mirroring; keep feature
+  parity with iOS.
 - Both platforms must stay in sync with this document; any deviation requires
   a spec update first.
 
-## 10. Design Tokens (JSON)
+## 11. Design Tokens (JSON)
 
 Tokens below are the single source of truth for colors, spacing, type and
 radii. Apps should consume these values directly.
