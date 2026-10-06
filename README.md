@@ -17,6 +17,6 @@ To be determined.
 
 ## Licensing
 
-VoxSign is free for personal use under the [Business Source License 1.1](LICENSE).
-Organizations using VoxSign commercially must obtain a license first — see
-[COMMERCIAL.md](COMMERCIAL.md).
+VoxSign is open source under the [Apache License 2.0](LICENSE). Free for
+personal and commercial use. The VoxSign brand, logo, and domain remain
+trademarks of VoxSign.
