@@ -13,3 +13,10 @@ Voice assistant platform: a SwiftUI iOS client paired with a zero-dependency Go 
 ## License
 
 To be determined.
+
+
+## Licensing
+
+VoxSign is free for personal use under the [Business Source License 1.1](LICENSE).
+Organizations using VoxSign commercially must obtain a license first — see
+[COMMERCIAL.md](COMMERCIAL.md).
