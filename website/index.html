@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>VoxSign — Local-first voice AI platform</title>
+<meta name="description" content="VoxSign is a local-first voice AI platform. Hold to talk, keep your voice on-device, and switch to the cloud only when you choose. iOS and Android, open source under Apache-2.0." />
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='3' y='3' width='58' height='58' rx='14' fill='%230b0f14' stroke='%2322d3ee' stroke-width='2.5'/><g stroke='%2322d3ee' stroke-width='3.5' stroke-linecap='round'><line x1='14' y1='27' x2='14' y2='37'/><line x1='19' y1='22' x2='19' y2='42'/><line x1='24' y1='17' x2='24' y2='47'/><line x1='29' y1='13' x2='29' y2='51'/><line x1='34' y1='20' x2='34' y2='44'/><line x1='39' y1='15' x2='39' y2='49'/><line x1='44' y1='21' x2='44' y2='43'/><line x1='49' y1='26' x2='49' y2='38'/></g></svg>" />
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0b0f14; --bg-2:#0f151d; --bg-3:#131b26;
+    --line:#1e2937; --line-2:#27344a;
+    --text:#e6edf6; --muted:#94a3b8; --faint:#64748b;
+    --cyan:#22d3ee; --cyan-2:#67e8f9;
+    --green:#10b981; --red:#ef4444; --amber:#f59e0b;
+    --radius:14px;
+  }
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6; font-size:16px; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+  }
+  /* Chinese font stack */
+  html[lang="zh-Hans"] body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  /* Arabic font stack */
+  html[dir="rtl"] body{
+    font-family:"SF Pro Arabic","Geeza Pro","Noto Naskh Arabic","Noto Sans Arabic","Segoe UI","Tahoma",sans-serif;
+    line-height:1.92; /* +20% over 1.6 */
+  }
+  html[dir="rtl"] h1,html[dir="rtl"] h2,html[dir="rtl"] h3{letter-spacing:0;line-height:1.3}
+  html[dir="rtl"] .eyebrow{letter-spacing:0;text-transform:none}
+  a{color:inherit;text-decoration:none}
+  img,svg{display:block;max-width:100%}
+  .container{max-width:1080px;margin:0 auto;padding:0 22px}
+  section{padding:80px 0;position:relative}
+  h1,h2,h3{font-weight:700;letter-spacing:-0.02em;line-height:1.15}
+  h1{font-size:clamp(34px,6vw,60px)}
+  h2{font-size:clamp(26px,3.6vw,38px)}
+  h3{font-size:18px}
+  .eyebrow{display:inline-block;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);font-weight:600;margin-bottom:14px}
+  .lead{color:var(--muted);font-size:clamp(15px,1.6vw,18px);max-width:640px}
+  .muted{color:var(--muted)}
+
+  /* Nav */
+  header.nav{position:sticky;top:0;z-index:50;backdrop-filter:saturate(160%) blur(12px);background:rgba(11,15,20,.78);border-bottom:1px solid var(--line)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:60px;gap:10px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:-.01em}
+  .brand-mark{width:28px;height:28px}
+  .nav-links{display:flex;align-items:center;gap:18px;font-size:14px;color:var(--muted)}
+  .nav-links a:hover{color:var(--text)}
+  .lang-switch{display:inline-flex;align-items:center;gap:2px;padding:3px;border:1px solid var(--line-2);border-radius:9px;background:var(--bg-2)}
+  .lang-switch button{appearance:none;border:0;background:transparent;color:var(--muted);font-size:12px;font-weight:600;padding:5px 9px;border-radius:6px;cursor:pointer;line-height:1;font-family:inherit;white-space:nowrap}
+  .lang-switch button:hover{color:var(--text)}
+  .lang-switch button.active{background:var(--cyan);color:#06202a}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:10px;font-weight:600;font-size:14px;border:1px solid var(--line-2);background:var(--bg-3);color:var(--text);transition:transform .12s ease,background .15s ease,border-color .15s ease;cursor:pointer;white-space:nowrap}
+  html[dir="rtl"] .btn{white-space:normal}
+  .btn:hover{border-color:#3b4b66;transform:translateY(-1px)}
+  .btn-primary{background:var(--cyan);color:#06202a;border-color:var(--cyan)}
+  .btn-primary:hover{background:var(--cyan-2)}
+  .btn-ghost{background:transparent}
+  .btn-sm{padding:8px 13px;font-size:13px;border-radius:9px}
+  /* directional arrow: flip under RTL */
+  .arr{display:inline-block;transition:transform .15s ease}
+  html[dir="rtl"] .arr{transform:scaleX(-1)}
+
+  /* Hero */
+  .hero{padding:76px 0 60px;text-align:center;overflow:hidden}
+  .hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 13px;border-radius:999px;border:1px solid var(--line-2);background:var(--bg-2);color:var(--muted);font-size:12.5px;margin-bottom:22px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+  .hero h1 .accent{background:linear-gradient(90deg,var(--cyan),#a5f3fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .lead{margin:18px auto 30px}
+  .hero-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:36px}
+  .hero-keys{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;color:var(--faint);font-size:13px;margin-top:6px}
+  .hero-keys span{display:inline-flex;align-items:center;gap:6px}
+  .hero-keys .k{color:var(--cyan)}
+
+  .wave-stage{margin:18px auto 0;max-width:760px;height:120px;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 10px}
+  html[dir="rtl"] .wave-stage{flex-direction:row-reverse}
+  .wave-stage .bar{width:5px;border-radius:3px;background:linear-gradient(180deg,var(--cyan),#0e7490);animation:wave 1.4s ease-in-out infinite;opacity:.9}
+  @keyframes wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+  @media (prefers-reduced-motion:reduce){.wave-stage .bar{animation:none}}
+
+  .sec-head{max-width:720px;margin-bottom:44px}
+  .sec-head.center{margin-left:auto;margin-right:auto;text-align:center}
+  .sec-head.center .lead{margin:14px auto 0}
+
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .card{background:linear-gradient(180deg,var(--bg-2),var(--bg-3));border:1px solid var(--line);border-radius:var(--radius);padding:22px;transition:border-color .15s ease,transform .15s ease}
+  .card:hover{border-color:var(--line-2)}
+  .card .ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(34,211,238,.1);color:var(--cyan);margin-bottom:14px}
+  .card h3{margin-bottom:8px}
+  .card p{color:var(--muted);font-size:14.5px}
+
+  .status-demo{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:13px}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line-2);color:var(--muted)}
+  .pill .sd{width:8px;height:8px;border-radius:50%}
+  .sd.local{background:var(--green);box-shadow:0 0 8px var(--green)}
+  .sd.cloud{background:var(--red);box-shadow:0 0 8px var(--red)}
+
+  .harness{margin-top:18px;border:1px dashed var(--line-2);border-radius:var(--radius);padding:22px;background:rgba(34,211,238,.03);display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .harness .grow{flex:1;min-width:240px}
+  .harness h3{margin-bottom:6px;color:var(--cyan-2)}
+
+  .repo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .repo{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:18px 20px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-2);transition:border-color .15s ease,transform .15s ease}
+  .repo:hover{border-color:var(--cyan);transform:translateY(-1px)}
+  .repo .r-name{font-weight:600;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14.5px}
+  .repo .r-desc{color:var(--muted);font-size:13px;margin-top:3px}
+  .repo .r-meta{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:12px;white-space:nowrap}
+  html[dir="rtl"] .repo .r-meta{white-space:normal}
+  .lic{display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;background:rgba(16,185,129,.12);color:#6ee7b7;border:1px solid rgba(16,185,129,.3);font-family:ui-monospace,Menlo,monospace}
+
+  .privacy{background:linear-gradient(180deg,var(--bg-2),#0a1418);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .priv-row{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+  .check-list{list-style:none;margin-top:18px;display:grid;gap:12px}
+  .check-list li{display:flex;gap:12px;color:var(--muted);font-size:15px}
+  .check-list svg{flex:0 0 18px;color:var(--green);margin-top:3px}
+  .shield{aspect-ratio:1/1;max-width:340px;margin:0 auto;border-radius:24px;background:radial-gradient(circle at 50% 30%,rgba(34,211,238,.18),transparent 60%);border:1px solid var(--line-2);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+  .shield .ring{position:absolute;inset:20%;border-radius:50%;border:1px dashed rgba(34,211,238,.35);animation:spin 18s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .dl-card{padding:28px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-2);display:flex;flex-direction:column;gap:10px}
+  .dl-card h3{display:flex;align-items:center;gap:10px;font-size:20px;flex-wrap:wrap}
+  .dl-card .badge{font-size:11px;padding:3px 8px;border-radius:6px;background:var(--bg-3);border:1px solid var(--line-2);color:var(--muted)}
+  .dl-card .badge.soon{color:var(--amber);border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.08)}
+  .dl-card .src{font-size:12px;color:var(--faint)}
+
+  footer{border-top:1px solid var(--line);padding:30px 0;color:var(--faint);font-size:13.5px}
+  .foot-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+  .foot-inner a{color:var(--muted)}
+  .foot-inner a:hover{color:var(--cyan)}
+
+  @media (max-width:860px){
+    section{padding:60px 0}
+    .grid-4{grid-template-columns:repeat(2,1fr)}
+    .repo-grid{grid-template-columns:1fr}
+    .priv-row{grid-template-columns:1fr;gap:28px}
+    .dl-grid{grid-template-columns:1fr}
+    .nav-links .hide-sm{display:none}
+    h1{font-size:34px}
+  }
+  @media (max-width:480px){
+    .grid-4{grid-template-columns:1fr}
+    .hero{padding:50px 0 40px}
+    .wave-stage{height:90px;gap:4px}
+    .nav-inner{height:auto;min-height:56px;padding:8px 0;flex-wrap:wrap}
+    .nav-links{gap:10px;flex-wrap:wrap}
+    .lang-switch button{padding:5px 7px;font-size:11px}
+  }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="#top" aria-label="VoxSign home" data-i18n-aria="brandHome">
+      <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <linearGradient id="navg" x1="8" y1="32" x2="56" y2="32" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#0e7490"/>
+            <stop offset="1" stop-color="#22d3ee"/>
+          </linearGradient>
+        </defs>
+        <rect x="3" y="3" width="58" height="58" rx="14" stroke="url(#navg)" stroke-width="3" fill="none"/>
+        <g stroke="url(#navg)" stroke-width="4" stroke-linecap="round">
+          <line x1="14" y1="27" x2="14" y2="37"/>
+          <line x1="19" y1="22" x2="19" y2="42"/>
+          <line x1="24" y1="17" x2="24" y2="47"/>
+          <line x1="29" y1="13" x2="29" y2="51"/>
+          <line x1="34" y1="20" x2="34" y2="44"/>
+          <line x1="39" y1="15" x2="39" y2="49"/>
+          <line x1="44" y1="21" x2="44" y2="43"/>
+          <line x1="49" y1="26" x2="49" y2="38"/>
+        </g>
+      </svg>
+      VoxSign
+    </a>
+    <nav class="nav-links">
+      <span class="lang-switch" role="group" data-i18n-aria="langLabel">
+        <button type="button" data-lang-btn="en">EN</button>
+        <button type="button" data-lang-btn="zh">中文</button>
+        <button type="button" data-lang-btn="ar">العربية</button>
+      </span>
+      <a href="#features" class="hide-sm" data-i18n="navFeatures">Features</a>
+      <a href="#oss" class="hide-sm" data-i18n="navOss">Open Source</a>
+      <a href="#privacy" class="hide-sm" data-i18n="navPrivacy">Privacy</a>
+      <a href="#download" class="hide-sm" data-i18n="navDownload">Download</a>
+      <a class="btn btn-sm btn-ghost" href="https://github.com/Voxsign" target="_blank" rel="noopener">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.7-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        <span data-i18n="navGithub">GitHub</span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="container">
+    <span class="hero-badge"><span class="dot"></span> <span data-i18n="heroBadge">Open source · Apache-2.0 · Local-first</span></span>
+    <h1><span data-i18n="h1a">Voice, on your</span><br /><span class="accent" data-i18n="h1b">own device.</span></h1>
+    <p class="lead" data-i18n="heroLead">VoxSign is a local-first voice AI platform. Hold to talk, let your machine listen, and only flip on the cloud when a session actually needs it. Your voice stays where it belongs — with you.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-primary" href="#download">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a1 1 0 0 1 1 1v10.59l3.3-3.3a1 1 0 1 1 1.4 1.42l-5 6a1 1 0 0 1-1.4 0l-5-6a1 1 0 1 1 1.4-1.42l3.3 3.3V3a1 1 0 0 1 1-1zM5 20h14a1 1 0 1 1 0 2H5a1 1 0 1 1 0-2z"/></svg>
+        <span data-i18n="ctaGet">Get the app</span>
+      </a>
+      <a class="btn" href="https://github.com/Voxsign" target="_blank" rel="noopener" data-i18n="ctaStar">Star on GitHub</a>
+    </div>
+    <div class="hero-keys">
+      <span><span class="k" data-i18n="key1">local-first</span> <span data-i18n="key1b">default</span></span>
+      <span><span class="k" data-i18n="key2">voice as input</span></span>
+      <span><span class="k" data-i18n="key3">privacy by design</span></span>
+      <span><span class="k" data-i18n="key4">open source</span></span>
+    </div>
+    <div class="wave-stage" aria-hidden="true" id="wave"></div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="container">
+    <div class="sec-head center">
+      <span class="eyebrow" data-i18n="eyWhat">What it does</span>
+      <h2 data-i18n="featH2">Speak. Your machine listens.</h2>
+      <p class="lead" data-i18n="featLead">A calm voice layer between you and your devices — built on the open Harness runtime, not a black box.</p>
+    </div>
+
+    <div class="grid-4">
+      <div class="card">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12h2M7 8v8M11 5v14M15 8v8M19 10v4M21 12h-2"/></svg></div>
+        <h3 data-i18n="c1t">Hold to talk</h3>
+        <p data-i18n="c1d">Press the big waveform button and speak. Release to send. No menus, no typing — just voice, the way you already talk.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="4" width="7" height="7" rx="1.5"/><rect x="3" y="13" width="7" height="7" rx="1.5"/><rect x="14" y="13" width="7" height="7" rx="1.5"/></svg></div>
+        <h3 data-i18n="c2t">Sessions, roles, domains</h3>
+        <p data-i18n="c2d">Run parallel conversations, each with its own role and domain. Work, personal, experiments — never bleed into one another.</p>
+      </div>
+      <div class="card">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v10"/><path d="M7 8l5-5 5 5"/><rect x="4" y="15" width="16" height="6" rx="1.5"/></svg></div>
+        <h3 data-i18n="c3t">Local ↔ cloud switch</h3>
+        <p data-i18n="c3d">One tap moves a session between your machine and the cloud. Green means on-device, red means routed out — you always know.</p>
+        <div class="status-demo">
+          <span class="pill"><span class="sd local"></span> <span data-i18n="pillLocal">Local</span></span>
+          <span class="pill"><span class="sd cloud"></span> <span data-i18n="pillCloud">Cloud</span></span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"/><circle cx="19" cy="15" r="2.5"/></svg></div>
+        <h3 data-i18n="c4t">Auto-named sessions</h3>
+        <p data-i18n="c4d">Threads title themselves from your first turns. No more "New chat 47" — just open the one you mean.</p>
+      </div>
+    </div>
+
+    <div class="harness">
+      <div class="grow">
+        <h3 data-i18n="harT">VoxSign Harness — the open runtime</h3>
+        <p class="muted" data-i18n="harD">The brains ship as Apache-2.0 software: session state, model routing, local/cloud transport, and the hold-to-talk protocol. Point it at your own model, your own endpoint, or your own server.</p>
+      </div>
+      <a class="btn" href="https://github.com/Voxsign/VoxSignHarness" target="_blank" rel="noopener"><span data-i18n="harBtn">Explore Harness</span> <span class="arr" aria-hidden="true">&rarr;</span></a>
+    </div>
+  </div>
+</section>
+
+<section id="oss" style="background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="container">
+    <div class="sec-head">
+      <span class="eyebrow" data-i18n="eyOss">Open source</span>
+      <h2 data-i18n="ossH2">The whole stack, in the open.</h2>
+      <p class="lead" data-i18n="ossLead">Apps, runtime, and server live in the <a href="https://github.com/Voxsign" target="_blank" rel="noopener" style="color:var(--cyan)">Voxsign</a> GitHub organization — every line under the permissive Apache-2.0 license. Fork it, audit it, run it your way. Voice infrastructure should not be a moat.</p>
+    </div>
+    <div class="repo-grid">
+      <a class="repo" href="https://github.com/Voxsign/voxsign" target="_blank" rel="noopener">
+        <div><div class="r-name">Voxsign/voxsign</div><div class="r-desc" data-i18n="r1">Core product, documentation, and project home.</div></div>
+        <div class="r-meta"><span class="lic">Apache-2.0</span><span class="arr" aria-hidden="true">&rarr;</span></div>
+      </a>
+      <a class="repo" href="https://github.com/Voxsign/VoxSign-IOS" target="_blank" rel="noopener">
+        <div><div class="r-name">Voxsign/VoxSign-IOS</div><div class="r-desc" data-i18n="r2">iOS client — hold-to-talk, sessions, local/cloud switch.</div></div>
+        <div class="r-meta"><span class="lic">Apache-2.0</span><span class="arr" aria-hidden="true">&rarr;</span></div>
+      </a>
+      <a class="repo" href="https://github.com/Voxsign/VoxSign-Android" target="_blank" rel="noopener">
+        <div><div class="r-name">Voxsign/VoxSign-Android</div><div class="r-desc" data-i18n="r3">Android client, feature parity with iOS.</div></div>
+        <div class="r-meta"><span class="lic">Apache-2.0</span><span class="arr" aria-hidden="true">&rarr;</span></div>
+      </a>
+      <a class="repo" href="https://github.com/Voxsign/VoxSignHarness" target="_blank" rel="noopener">
+        <div><div class="r-name">Voxsign/VoxSignHarness</div><div class="r-desc" data-i18n="r4">Open runtime — session state, model routing, transport.</div></div>
+        <div class="r-meta"><span class="lic">Apache-2.0</span><span class="arr" aria-hidden="true">&rarr;</span></div>
+      </a>
+      <a class="repo" href="https://github.com/Voxsign/VoxSign-Server" target="_blank" rel="noopener" style="grid-column:1 / -1">
+        <div><div class="r-name">Voxsign/VoxSign-Server</div><div class="r-desc" data-i18n="r5">Reference server for cloud routing and self-hosted deployments.</div></div>
+        <div class="r-meta"><span class="lic">Apache-2.0</span><span class="arr" aria-hidden="true">&rarr;</span></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section id="privacy" class="privacy">
+  <div class="container">
+    <div class="priv-row">
+      <div>
+        <span class="eyebrow" data-i18n="eyPriv">Privacy by design</span>
+        <h2 data-i18n="privH2">Your voice is yours.</h2>
+        <ul class="check-list">
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg> <span data-i18n="p1">Speech is processed on-device before anything leaves the phone.</span></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg> <span data-i18n="p2">You choose, per session, whether to route through the cloud.</span></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg> <span data-i18n="p3">The runtime is open source — read the code, don't trust a claim.</span></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg> <span data-i18n="p4">No account required to use local models.</span></li>
+        </ul>
+      </div>
+      <div class="shield" aria-hidden="true">
+        <div class="ring"></div>
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2l8 3v6c0 5-3.5 9.5-8 11-4.5-1.5-8-6-8-11V5l8-3z"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="download">
+  <div class="container">
+    <div class="sec-head center">
+      <span class="eyebrow" data-i18n="eyDl">Get started</span>
+      <h2 data-i18n="dlH2">Take it for a spin.</h2>
+      <p class="lead" data-i18n="dlLead">Android builds are published straight from GitHub Actions. iOS is rolling out via TestFlight.</p>
+    </div>
+    <div class="dl-grid">
+      <a class="dl-card" href="https://github.com/Voxsign/VoxSign-Android/releases" target="_blank" rel="noopener">
+        <h3>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.6 9.48l1.84-3.18a.4.4 0 0 0-.69-.4L16.9 8.88a11.7 11.7 0 0 0-9.8 0L5.25 5.9a.4.4 0 0 0-.69.4L6.4 9.48A10.8 10.8 0 0 0 1 18h22a10.8 10.8 0 0 0-5.4-8.52zM7 15.25A1.25 1.25 0 1 1 7 12.75a1.25 1.25 0 0 1 0 2.5zm10 0A1.25 1.25 0 1 1 17 12.75a1.25 1.25 0 0 1 0 2.5z"/></svg>
+          Android <span class="badge" data-i18n="badgeReleases">GitHub Releases</span>
+        </h3>
+        <p class="muted" data-i18n="dlAndroidD">Download the latest APK from the VoxSign-Android releases page — built and signed by GitHub Actions.</p>
+        <span class="src"><span data-i18n="dlSrc">Source:</span> github.com/Voxsign/VoxSign-Android</span>
+      </a>
+      <div class="dl-card">
+        <h3>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.36 12.79c.03 3.02 2.65 4.02 2.68 4.03-.02.07-.42 1.44-1.39 2.85-.84 1.23-1.72 2.46-3.1 2.49-1.36.03-1.8-.8-3.36-.8-1.56 0-2.03.78-3.33.83-1.33.05-2.34-1.33-3.19-2.56C3.05 17.2 1.7 12.6 3.4 9.2c.85-1.7 2.36-2.77 4.01-2.8 1.3-.03 2.52.87 3.35.87.83 0 2.3-1.07 3.89-.91.66.03 2.52.27 3.72 2.02-.09.06-2.22 1.3-2.2 3.81zM13.2 4.4c.7-.85 1.17-2.03 1.04-3.2-1 .04-2.22.66-2.94 1.5-.64.74-1.2 1.94-1.05 3.09 1.11.09 2.26-.56 2.95-1.39z"/></svg>
+          iOS <span class="badge soon" data-i18n="dlBadgeSoon">Coming soon</span>
+        </h3>
+        <p class="muted" data-i18n="dlIosD">TestFlight openings will be announced here. The iOS source is already public — build and run it yourself from the repo.</p>
+        <span class="src"><span data-i18n="dlRepo">Repo:</span> github.com/Voxsign/VoxSign-IOS</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container foot-inner">
+    <div>&copy; <span id="yr"></span> VoxSign. <span data-i18n="footRights">Released under Apache-2.0.</span></div>
+    <div><a href="https://github.com/Voxsign" target="_blank" rel="noopener">github.com/Voxsign</a></div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  /* ===== i18n dictionary (frozen glossary per DESIGN.md §9.6) ===== */
+  var HTML_KEYS = { ossLead:1 };
+  var I18N = {
+    en: {
+      brandHome: "VoxSign home", langLabel: "Language", badgeReleases: "GitHub Releases",
+      navFeatures: "Features", navOss: "Open Source", navPrivacy: "Privacy", navDownload: "Download", navGithub: "GitHub",
+      heroBadge: "Open source · Apache-2.0 · Local-first",
+      h1a: "Voice, on your", h1b: "own device.",
+      heroLead: "VoxSign is a local-first voice AI platform. Hold to talk, let your machine listen, and only flip on the cloud when a session actually needs it. Your voice stays where it belongs — with you.",
+      ctaGet: "Get the app", ctaStar: "Star on GitHub",
+      key1: "local-first", key1b: "default", key2: "voice as input", key3: "privacy by design", key4: "open source",
+      eyWhat: "What it does", featH2: "Speak. Your machine listens.",
+      featLead: "A calm voice layer between you and your devices — built on the open Harness runtime, not a black box.",
+      c1t: "Hold to talk", c1d: "Press the big waveform button and speak. Release to send. No menus, no typing — just voice, the way you already talk.",
+      c2t: "Sessions, roles, domains", c2d: "Run parallel conversations, each with its own role and domain. Work, personal, experiments — never bleed into one another.",
+      c3t: "Local ↔ cloud switch", c3d: "One tap moves a session between your machine and the cloud. Green means on-device, red means routed out — you always know.",
+      pillLocal: "Local", pillCloud: "Cloud",
+      c4t: "Auto-named sessions", c4d: "Threads title themselves from your first turns. No more \"New chat 47\" — just open the one you mean.",
+      harT: "VoxSign Harness — the open runtime",
+      harD: "The brains ship as Apache-2.0 software: session state, model routing, local/cloud transport, and the hold-to-talk protocol. Point it at your own model, your own endpoint, or your own server.",
+      harBtn: "Explore Harness",
+      eyOss: "Open source", ossH2: "The whole stack, in the open.",
+      ossLead: "Apps, runtime, and server live in the <a href=\"https://github.com/Voxsign\" target=\"_blank\" rel=\"noopener\" style=\"color:var(--cyan)\">Voxsign</a> GitHub organization — every line under the permissive Apache-2.0 license. Fork it, audit it, run it your way. Voice infrastructure should not be a moat.",
+      r1: "Core product, documentation, and project home.",
+      r2: "iOS client — hold-to-talk, sessions, local/cloud switch.",
+      r3: "Android client, feature parity with iOS.",
+      r4: "Open runtime — session state, model routing, transport.",
+      r5: "Reference server for cloud routing and self-hosted deployments.",
+      eyPriv: "Privacy by design", privH2: "Your voice is yours.",
+      p1: "Speech is processed on-device before anything leaves the phone.",
+      p2: "You choose, per session, whether to route through the cloud.",
+      p3: "The runtime is open source — read the code, don't trust a claim.",
+      p4: "No account required to use local models.",
+      eyDl: "Get started", dlH2: "Take it for a spin.",
+      dlLead: "Android builds are published straight from GitHub Actions. iOS is rolling out via TestFlight.",
+      dlAndroidD: "Download the latest APK from the VoxSign-Android releases page — built and signed by GitHub Actions.",
+      dlSrc: "Source:", dlBadgeSoon: "Coming soon",
+      dlIosD: "TestFlight openings will be announced here. The iOS source is already public — build and run it yourself from the repo.",
+      dlRepo: "Repo:",
+      footRights: "Released under Apache-2.0."
+    },
+    zh: {
+      brandHome: "VoxSign 首页", langLabel: "语言", badgeReleases: "GitHub 发布",
+      navFeatures: "功能", navOss: "开源", navPrivacy: "隐私", navDownload: "下载", navGithub: "GitHub",
+      heroBadge: "开源 · Apache-2.0 · 本地优先",
+      h1a: "语音，就在", h1b: "你的设备上。",
+      heroLead: "VoxSign 是一个本地优先的语音 AI 平台。按住说话，让你的机器聆听；只有当某个会话确实需要时，才切换到云端。你的语音留在它该在的地方——你身边。",
+      ctaGet: "获取应用", ctaStar: "在 GitHub 上标星",
+      key1: "本地优先", key1b: "默认", key2: "语音输入", key3: "隐私内置", key4: "开源",
+      eyWhat: "产品功能", featH2: "开口说，你的机器在听。",
+      featLead: "你与设备之间一层安静的语音通道——构建于开放的 Harness 运行时之上，而非黑盒。",
+      c1t: "按住说话", c1d: "按住那个大波形按钮说话，松开即发送。没有菜单，不用打字——就是用你平时说话的方式。",
+      c2t: "会话、角色与域", c2d: "并行运行多个会话，每个会话有自己的角色和域。工作、个人、实验——彼此从不串扰。",
+      c3t: "本机 ↔ 云端切换", c3d: "一键即可在本机与云端之间切换会话。绿色表示在本机，红色表示已外发——你始终心中有数。",
+      pillLocal: "本机", pillCloud: "云端",
+      c4t: "自动命名会话", c4d: "会话会根据你的前几轮对话自动命名。再也没有“新对话 47”——直接打开你想要的那一个。",
+      harT: "VoxSign Harness——开放运行时",
+      harD: "核心以 Apache-2.0 软件形式交付：会话状态、模型路由、本机/云端传输，以及按住说话协议。把它指向你自己的模型、你自己的端点，或你自己的服务器。",
+      harBtn: "探索 Harness",
+      eyOss: "开源", ossH2: "全栈开放，一览无余。",
+      ossLead: "应用、运行时与服务器都托管在 <a href=\"https://github.com/Voxsign\" target=\"_blank\" rel=\"noopener\" style=\"color:var(--cyan)\">Voxsign</a> 的 GitHub 组织下——每一行代码都采用宽松的 Apache-2.0 许可证。Fork、审计、按你的方式运行。语音基础设施不应成为护城河。",
+      r1: "核心产品、文档与项目主页。",
+      r2: "iOS 客户端——按住说话、会话、本机/云端切换。",
+      r3: "Android 客户端，功能与 iOS 对齐。",
+      r4: "开放运行时——会话状态、模型路由、传输。",
+      r5: "用于云端路由与自托管部署的参考服务器。",
+      eyPriv: "隐私内置", privH2: "你的语音，只属于你。",
+      p1: "语音在离开手机之前，全部在本机处理。",
+      p2: "你可以按会话决定是否走云端。",
+      p3: "运行时开源——读代码，而不是听信承诺。",
+      p4: "使用本机模型无需注册账号。",
+      eyDl: "快速上手", dlH2: "上手试一试。",
+      dlLead: "Android 安装包直接由 GitHub Actions 发布。iOS 正通过 TestFlight 逐步开放。",
+      dlAndroidD: "从 VoxSign-Android 发布页下载最新 APK——由 GitHub Actions 构建并签名。",
+      dlSrc: "来源：", dlBadgeSoon: "即将推出",
+      dlIosD: "TestFlight 名额将在此公布。iOS 源码已公开——你可以从仓库自行构建运行。",
+      dlRepo: "仓库：",
+      footRights: "基于 Apache-2.0 发布。"
+    },
+    ar: {
+      brandHome: "الصفحة الرئيسية لـ VoxSign", langLabel: "اللغة", badgeReleases: "إصدارات GitHub",
+      navFeatures: "الميزات", navOss: "مفتوح المصدر", navPrivacy: "الخصوصية", navDownload: "التنزيل", navGithub: "GitHub",
+      heroBadge: "مفتوح المصدر · Apache-2.0 · يعمل محلياً",
+      h1a: "صوتك، على", h1b: "جهازك.",
+      heroLead: "VoxSign منصة ذكاء اصطناعي للصوت تعمل محلياً أولاً. اضغط وتحدث، ودَع جهازك يستمع، ولا تنتقل إلى السحابة إلا عندما تحتاج الجلسة إلى ذلك. يبقى صوتك حيث ينبغي أن يكون — معك.",
+      ctaGet: "احصل على التطبيق", ctaStar: "ضع نجمة على GitHub",
+      key1: "يعمل محلياً", key1b: "افتراضياً", key2: "الصوت كمدخل", key3: "الخصوصية أصالة في التصميم", key4: "مفتوح المصدر",
+      eyWhat: "ماذا يقدّم", featH2: "تكلّم.. وجهازك يستمع.",
+      featLead: "طبقة صوت هادئة بينك وبين أجهزتك — مبنية على بيئة Harness المفتوحة، وليست صندوقاً أسود.",
+      c1t: "اضغط وتحدث", c1d: "اضغط على زر الموجة الكبير وتكلّم، ثم أفلت للإرسال. لا قوائم ولا كتابة — الصوت فقط، بالطريقة التي تتحدث بها عادةً.",
+      c2t: "جلسات وأدوار ونطاقات", c2d: "أدِر محادثات متوازية، لكل منها دوره ونطاقه. العمل، الشخصي، التجارب — لا تختلط بينها أبداً.",
+      c3t: "التبديل بين الجهاز والسحابة", c3d: "بنقرة واحدة تنقل الجلسة بين جهازك والسحابة. الأخضر يعني أنه على الجهاز، والأحمر يعني أنه مُوجَّه خارجاً — تعرف ذلك دائماً.",
+      pillLocal: "على الجهاز", pillCloud: "السحابة",
+      c4t: "جلسات بأسماء تلقائية", c4d: "تُسمّى المحادثات تلقائياً من مداخلاتك الأولى. لا مزيد من «محادثة جديدة 47» — افتح ما تقصده مباشرة.",
+      harT: "VoxSign Harness — البيئة مفتوحة المصدر",
+      harD: "يُسلَّم العقل البرمجي كبرنامج برخصة Apache-2.0: حالة الجلسة، توجيه النموذج، النقل بين الجهاز والسحابة، وبروتوكول الضغط والتحدث. وجّهه إلى نموذجك الخاص، أو نقطة الاتصال الخاصة بك، أو خادمك الخاص.",
+      harBtn: "استكشف Harness",
+      eyOss: "مفتوح المصدر", ossH2: "المكدّس البرمجي كاملاً، مفتوحاً.",
+      ossLead: "التطبيقات والبيئة والخادم تعيش ضمن منظمة <a href=\"https://github.com/Voxsign\" target=\"_blank\" rel=\"noopener\" style=\"color:var(--cyan)\">Voxsign</a> على GitHub — كل سطر تحت رخصة Apache-2.0 المتساهلة. انسخها، راجعها، وشغّلها على طريقتك. لا ينبغي أن تكون البنية التحتية للصوت خندقاً دفاعياً.",
+      r1: "المنتج الأساسي والتوثيق والصفحة الرئيسية للمشروع.",
+      r2: "عميل iOS — الضغط والتحدث، الجلسات، التبديل بين الجهاز والسحابة.",
+      r3: "عميل Android، بميزات مماثلة لـ iOS.",
+      r4: "بيئة مفتوحة — حالة الجلسة، توجيه النموذج، النقل.",
+      r5: "خادم مرجعي للتوجيه السحابي والنشر الذاتي.",
+      eyPriv: "الخصوصية أصالة في التصميم", privH2: "صوتك ملكك.",
+      p1: "تتم معالجة الكلام على الجهاز قبل أن يغادر الهاتف.",
+      p2: "أنت تختار لكل جلسة ما إذا كانت ستُوجَّه عبر السحابة.",
+      p3: "البيئة مفتوحة المصدر — اقرأ الكود، ولا تكتفِ بالادعاءات.",
+      p4: "لا حاجة إلى حساب لاستخدام النماذج المحلية.",
+      eyDl: "ابدأ الآن", dlH2: "جرّبه بنفسك.",
+      dlLead: "تُنشر حزم Android مباشرةً من GitHub Actions. ويتم إطلاق iOS تدريجياً عبر TestFlight.",
+      dlAndroidD: "نزّل أحدث APK من صفحة إصدارات VoxSign-Android — مبنية وموقّعة بواسطة GitHub Actions.",
+      dlSrc: "المصدر:", dlBadgeSoon: "قريباً",
+      dlIosD: "سيتم الإعلان عن مقاعد TestFlight هنا. كود iOS متاح بالفعل — ابنِه وشغّله بنفسك من المستودع.",
+      dlRepo: "المستودع:",
+      footRights: "صادر بموجب رخصة Apache-2.0."
+    }
+  };
+  var META = {
+    en: { title: "VoxSign — Local-first voice AI platform",
+          desc: "VoxSign is a local-first voice AI platform. Hold to talk, keep your voice on-device, and switch to the cloud only when you choose. iOS and Android, open source under Apache-2.0." },
+    zh: { title: "VoxSign — 本地优先的语音 AI 平台",
+          desc: "VoxSign 是一个本地优先的语音 AI 平台。按住说话，让语音留在本机，仅在你选择时才切换到云端。iOS 与 Android 客户端，基于 Apache-2.0 开源。" },
+    ar: { title: "VoxSign — منصة صوت ذكية تعمل محلياً",
+          desc: "VoxSign منصة ذكاء اصطناعي للصوت تعمل محلياً أولاً. اضغط وتحدث، واحفظ صوتك على جهازك، وانتقل إلى السحابة فقط عند اختيارك. أنظمة iOS وAndroid، مفتوحة المصدر برخصة Apache-2.0." }
+  };
+
+  function detectLang(){
+    var p = new URLSearchParams(location.search).get('lang');
+    if (p && I18N[p]) return p;
+    try { var s = localStorage.getItem('vx-lang'); if (s && I18N[s]) return s; } catch(e){}
+    var nl = (navigator.language || 'en').toLowerCase();
+    if (nl.indexOf('zh') === 0) return 'zh';
+    if (nl.indexOf('ar') === 0) return 'ar';
+    return 'en';
+  }
+
+  function applyLang(lang){
+    document.documentElement.lang = (lang === 'zh') ? 'zh-Hans' : lang;
+    document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+    var dict = I18N[lang] || I18N.en;
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var k = el.getAttribute('data-i18n');
+      if (dict[k] == null) return;
+      if (HTML_KEYS[k]) { el.innerHTML = dict[k]; } else { el.textContent = dict[k]; }
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach(function(el){
+      var k = el.getAttribute('data-i18n-aria');
+      if (dict[k]) el.setAttribute('aria-label', dict[k]);
+    });
+    document.title = (META[lang] || META.en).title;
+    var m = document.querySelector('meta[name="description"]');
+    if (m) m.setAttribute('content', (META[lang] || META.en).desc);
+    document.querySelectorAll('[data-lang-btn]').forEach(function(b){
+      var on = b.getAttribute('data-lang-btn') === lang;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    try { localStorage.setItem('vx-lang', lang); } catch(e){}
+  }
+
+  window.__vxSetLang = function(lang){
+    if (lang && I18N[lang]) { applyLang(lang); return document.documentElement.lang; }
+    return null;
+  };
+  document.querySelectorAll('[data-lang-btn]').forEach(function(b){
+    b.addEventListener('click', function(){ window.__vxSetLang(b.getAttribute('data-lang-btn')); });
+  });
+
+  applyLang(detectLang());
+
+  /* ===== wave animation (original logic preserved) ===== */
+  (function(){
+    var stage = document.getElementById('wave');
+    var bars = 36;
+    for (var i=0;i<bars;i++){
+      var b = document.createElement('div');
+      b.className = 'bar';
+      var h = 20 + Math.round(Math.abs(Math.sin(i*1.7))*70);
+      b.style.height = h + 'px';
+      b.style.animationDelay = (i*0.06) + 's';
+      b.style.animationDuration = (1.0 + (i%5)*0.15) + 's';
+      stage.appendChild(b);
+    }
+  })();
+</script>
+</body>
+</html>
