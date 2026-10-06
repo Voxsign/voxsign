@@ -32,6 +32,12 @@ Four ideas every VoxSign surface reinforces:
 3. **Privacy by design** — Voice leaves the phone only when you flip the switch.
 4. **Open source** — Apps, Harness, and server are Apache-2.0. Fork and run it.
 
+## Design
+
+Mobile UI design system — colors, typography, spacing, components, motion,
+accessibility, and design tokens — lives in [design/DESIGN.md](design/DESIGN.md).
+All VoxSign-IOS and VoxSign-Android UI work is bound by it.
+
 ## License
 
 VoxSign is open source under the [Apache License 2.0](LICENSE), free for
